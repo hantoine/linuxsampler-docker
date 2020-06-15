@@ -27,13 +27,11 @@ RUN rm *-dev_*.deb
 # Preparation of small final image
 FROM ubuntu:latest 
 
+COPY --from=build /workdir/*.deb /workdir/
 RUN apt-get update && \
     apt-get install -y libasound2 libjack-jackd2-0 libsndfile1 libsqlite3-0 && \
-    rm -rf /var/lib/apt/lists/
-COPY --from=build /workdir/*.deb /workdir/
-WORKDIR /workdir
-RUN dpkg -i *.deb
-RUN mkdir /usr/lib/ladspa
-
+    rm -rf /var/lib/apt/lists/ && \
+    dpkg -i /workdir/*.deb && \
+    mkdir /usr/lib/ladspa
 EXPOSE 8888
 ENTRYPOINT linuxsampler
