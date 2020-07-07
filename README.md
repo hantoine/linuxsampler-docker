@@ -1,9 +1,10 @@
-# Docker image for Linux Sampler
+# Docker image for LinuxSampler
 
 ## Usage
   1. Clone this repos
   2. Execute `docker build -t linuxsampler linuxsampler` inside the repos to build the Docker image
-  3. Launch with:
+  3. Start JACK with `jack_control start` and execute `jack_load netmanager` to load the networking module.
+  4. Launch LinuxSampler in a Docker container:
     
 ```bash
     docker run -d \
@@ -19,9 +20,8 @@
         --name linuxsampler \
         linuxsampler
 ```
-  4. Start JACK with `jack_control start` and execute `jack_load netmanager` to load the networking module.
-  5. A new audio output port and a new midi input port in JACK will appear, connect them accordingly. 
-  6. Control using a GUI such as QSampler (available in Ubuntu repos)
+  5. Two new audio output port and a new midi input port will appear in JACK, connect them accordingly. 
+  6. You can control LinuxSampler using a GUI like QSampler (available in Ubuntu repos).
   
   To extract the DEB files from the Docker image, use:  
   ```
