@@ -34,8 +34,7 @@ RUN apt-get update && \
 	libasound2 libjack-jackd2-0 libsndfile1 libsqlite3-0 jackd2 && \
     rm -rf /var/lib/apt/lists/ && \
     dpkg -i /workdir/*.deb && \
-    echo "/usr/bin/jackd -R -d net -a $DOCKERHOST -n linuxsampler -i 1 -l 1" \
-	>> ~/.jackdrc && \
     mkdir /usr/lib/ladspa
+COPY entrypoint.sh /usr/local/bin
 EXPOSE 8888
-# ENTRYPOINT linuxsampler
+ENTRYPOINT entrypoint.sh 
