@@ -4,10 +4,10 @@ FROM ubuntu:latest AS build
 
 RUN apt-get update && \
     TZ="America/Toronto" DEBIAN_FRONTEND="noninteractive" \
-    apt-get install -y g++ debhelper pkg-config automake libtool fakeroot \
-                       subversion libsndfile1-dev doxygen uuid-dev \
-                       libjack-dev dssi-dev lv2-dev libsqlite3-dev flex bison \
-                       libxml-parser-perl && \
+    apt-get install -y --no-install-recommends \
+	build-essential g++ debhelper pkg-config automake libtool fakeroot \
+	subversion libsndfile1-dev doxygen uuid-dev libjack-dev dssi-dev \
+	lv2-dev libsqlite3-dev flex bison libxml-parser-perl && \
     rm -rf /var/lib/apt/lists/
 
 WORKDIR /workdir
@@ -29,9 +29,13 @@ FROM ubuntu:latest
 
 COPY --from=build /workdir/*.deb /workdir/
 RUN apt-get update && \
-    apt-get install -y libasound2 libjack-jackd2-0 libsndfile1 libsqlite3-0 && \
+    TZ="America/Toronto" DEBIAN_FRONTEND="noninteractive" \
+    apt-get install -y --no-install-recommends \
+	libasound2 libjack-jackd2-0 libsndfile1 libsqlite3-0 jackd2 && \
     rm -rf /var/lib/apt/lists/ && \
     dpkg -i /workdir/*.deb && \
+    echo "/usr/bin/jackd -R -d net -a $DOCKERHOST -n linuxsampler -i 1 -l 1" \
+	>> ~/.jackdrc && \
     mkdir /usr/lib/ladspa
 EXPOSE 8888
-ENTRYPOINT linuxsampler
+# ENTRYPOINT linuxsampler
