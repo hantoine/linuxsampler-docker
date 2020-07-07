@@ -7,7 +7,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
 	build-essential g++ debhelper pkg-config automake libtool fakeroot \
 	subversion libsndfile1-dev doxygen uuid-dev libjack-dev dssi-dev \
-	lv2-dev libsqlite3-dev flex bison libxml-parser-perl && \
+	lv2-dev libsqlite3-dev flex bison libxml-parser-perl wget \
+	ca-certificates unzip && \
     rm -rf /var/lib/apt/lists/
 
 WORKDIR /workdir
@@ -24,17 +25,24 @@ RUN svn co https://svn.linuxsampler.org/svn/linuxsampler/trunk/ linuxsampler
 RUN cd linuxsampler && dpkg-buildpackage -rfakeroot -b
 RUN rm *-dev_*.deb
 
+# Download soundfont
+RUN wget http://member.keymusician.com/Member/FluidR3_GM/FluidR3_GM.zip && \
+    unzip FluidR3_GM.zip && rm FluidR3_GM.zip
+
 # Preparation of small final image
 FROM ubuntu:latest 
 
-COPY --from=build /workdir/*.deb /workdir/
+WORKDIR /workdir
+COPY --from=build /workdir/*.deb ./
+COPY --from=build /workdir/*.sf2 ./
 RUN apt-get update && \
     TZ="America/Toronto" DEBIAN_FRONTEND="noninteractive" \
     apt-get install -y --no-install-recommends \
-	libasound2 libjack-jackd2-0 libsndfile1 libsqlite3-0 jackd2 && \
+	libasound2 libjack-jackd2-0 libsndfile1 libsqlite3-0 jackd2 netcat && \
     rm -rf /var/lib/apt/lists/ && \
-    dpkg -i /workdir/*.deb && \
+    dpkg -i *.deb && \
     mkdir /usr/lib/ladspa
-COPY entrypoint.sh /usr/local/bin
+COPY entrypoint.sh .
+COPY initial_channels.lsp .
 EXPOSE 8888
-ENTRYPOINT entrypoint.sh 
+ENTRYPOINT ./entrypoint.sh 
