@@ -8,7 +8,7 @@ RUN apt-get update && \
 	build-essential g++ debhelper pkg-config automake libtool fakeroot \
 	subversion libsndfile1-dev doxygen uuid-dev libjack-dev dssi-dev \
 	lv2-dev libsqlite3-dev flex bison libxml-parser-perl wget \
-	ca-certificates unzip && \
+	ca-certificates unzip unrar && \
     rm -rf /var/lib/apt/lists/
 
 WORKDIR /workdir
@@ -25,9 +25,11 @@ RUN svn co https://svn.linuxsampler.org/svn/linuxsampler/trunk/ linuxsampler
 RUN cd linuxsampler && dpkg-buildpackage -rfakeroot -b
 RUN rm *-dev_*.deb
 
-# Download soundfont
+# Download soundfonts
 RUN wget http://member.keymusician.com/Member/FluidR3_GM/FluidR3_GM.zip && \
     unzip FluidR3_GM.zip && rm FluidR3_GM.zip
+RUN wget http://download.linuxsampler.org/instruments/pianos/maestro_concert_grand_v2.rar &&\
+    unrar e maestro_concert_grand_v2.rar && rm maestro_concert_grand_v2.rar
 
 # Preparation of small final image
 FROM ubuntu:latest 
@@ -35,6 +37,7 @@ FROM ubuntu:latest
 WORKDIR /workdir
 COPY --from=build /workdir/*.deb ./
 COPY --from=build /workdir/*.sf2 ./
+COPY --from=build /workdir/*.gig ./
 RUN apt-get update && \
     TZ="America/Toronto" DEBIAN_FRONTEND="noninteractive" \
     apt-get install -y --no-install-recommends \
